@@ -1,0 +1,15 @@
+{
+  "name": "aurun-dashboard",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Panel de leads de Aurun — métricas del embudo + gestión de estados sobre Postgres.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}

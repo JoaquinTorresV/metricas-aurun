@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurun · Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg class="mark" width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" fill="#26C6BE"/><path d="M7 16V10a5 5 0 0 1 10 0v6M7 13h10" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>
+      <div><b>aur<span>un</span></b><small>Panel de leads</small></div>
+    </div>
+
+    <nav class="nav">
+      <span class="nav-label">Operación</span>
+      <a class="nav-item active" data-view="leads"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21c0-4 3.6-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Leads</a>
+      <a class="nav-item" data-view="metrics"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Métricas</a>
+
+      <span class="nav-label">Embudo</span>
+      <a class="nav-item" data-estado="nuevo"><span class="dot" style="background:#3B82F6"></span> Nuevos</a>
+      <a class="nav-item" data-estado="contactado"><span class="dot" style="background:#F59E0B"></span> Contactados</a>
+      <a class="nav-item" data-estado="respondio"><span class="dot" style="background:#26C6BE"></span> Respondió</a>
+      <a class="nav-item" data-estado="agendado"><span class="dot" style="background:#10B981"></span> Agendados</a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="av-ini" style="background:#26C6BE">A</div>
+      <div><b>Aurun</b><small>equipo@aurun.cl</small></div>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menú">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <h1>Leads <span class="count" id="totalCount">0</span></h1>
+      <div class="topbar-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input type="text" id="search" placeholder="Buscar por nombre, negocio o rubro…">
+      </div>
+      <button class="btn-teal" id="refreshBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v5h5M20 20v-5h-5M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Actualizar
+      </button>
+    </header>
+
+    <!-- Metric cards -->
+    <section class="metrics" id="metrics"></section>
+
+    <!-- Filter tabs -->
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-filter="todos">Todos</button>
+      <button class="tab" data-filter="nuevo">Nuevos</button>
+      <button class="tab" data-filter="contactado">Contactados</button>
+      <button class="tab" data-filter="respondio">Respondió</button>
+      <button class="tab" data-filter="agendado">Agendados</button>
+      <button class="tab" data-filter="cerrado">Cerrados</button>
+      <button class="tab" data-filter="perdido">Perdidos</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th class="col-check"><input type="checkbox" id="checkAll"></th>
+            <th>Cliente</th>
+            <th>Negocio</th>
+            <th>WhatsApp</th>
+            <th>Rubro</th>
+            <th>Estado</th>
+            <th>Origen</th>
+            <th>Fecha</th>
+            <th>Reunión</th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody"></tbody>
+      </table>
+      <div class="empty" id="emptyState" hidden>No hay leads que coincidan con el filtro.</div>
+    </div>
+  </main>
+
+  <!-- ===== Detail panel ===== -->
+  <aside class="detail" id="detail" hidden></aside>
+  <div class="detail-backdrop" id="detailBackdrop" hidden></div>
+
+  <!-- ===== Bulk selection bar ===== -->
+  <div class="bulkbar" id="bulkbar" hidden>
+    <span><b id="selCount">0</b> seleccionados</span>
+    <div class="bulk-actions">
+      <label class="bulk-estado">
+        Cambiar estado
+        <select id="bulkEstado">
+          <option value="">—</option>
+          <option value="nuevo">Nuevo</option>
+          <option value="contactado">Contactado</option>
+          <option value="respondio">Respondió</option>
+          <option value="agendado">Agendado</option>
+          <option value="cerrado">Cerrado</option>
+          <option value="perdido">Perdido</option>
+          <option value="no_show">No-show</option>
+        </select>
+      </label>
+      <button class="bulk-cancel" id="bulkCancel">Cancelar</button>
+    </div>
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

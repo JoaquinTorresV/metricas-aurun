@@ -49,7 +49,8 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 const PORT = process.env.PORT || 3000;
 db.initSchema()
-  .catch(e => console.error('initSchema:', e.message))
+  .then(() => process.env.SEED_DEMO === 'true' ? db.seedDemo() : null)
+  .catch(e => console.error('initSchema/seed:', e.message))
   .finally(() => app.listen(PORT, () => {
     console.log(`Panel Aurun en :${PORT} — BD: ${db.hasDB ? 'conectada' : 'no configurada (modo demo)'}`);
   }));

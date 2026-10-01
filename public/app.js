@@ -137,6 +137,7 @@ function openDetail(phone){
     </div>
     <div class="dp-section"><div class="lbl">Estado</div>
       <select class="dp-estado-select" id="dpEstado">${opts}</select></div>
+    <div class="dp-section"><div class="lbl">Correo</div><div class="val">${l.email ? `<a href="mailto:${l.email}" style="color:var(--teal-dark)">${l.email}</a>` : '<span class="muted">Sin correo aún</span>'}</div></div>
     <div class="dp-grid">
       <div class="dp-section"><div class="lbl">WhatsApp</div><div class="val">${l.phone}</div></div>
       <div class="dp-section"><div class="lbl">Rubro</div><div class="val">${l.rubro||'—'}</div></div>

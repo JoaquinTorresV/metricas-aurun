@@ -223,4 +223,12 @@ function bind(){
   await loadData();
   bind();
   renderAll();
+
+  // auto-refresco cada 20s (solo con backend real y sin interrumpir lo que estés haciendo)
+  setInterval(async () => {
+    if (!API) return;                                   // modo demo: no refrescar
+    if (state.active || state.selected.size) return;    // panel abierto o selección en curso
+    if (document.activeElement && document.activeElement.tagName === 'SELECT') return; // editando estado
+    try { await loadData(); renderMetrics(); renderTable(); } catch (_) {}
+  }, 20000);
 })();

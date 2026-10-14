@@ -34,6 +34,13 @@ const avatarColor = n => { let h=0; for(const c of (n||'')) h=(h*31+c.charCodeAt
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const fmtDateTime = iso => iso ? new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
 const waDigits = p => (p||'').replace(/\D/g,'');
+// País derivado del prefijo del teléfono (+56 Chile, +591 Bolivia).
+const paisDe = p => { const d = waDigits(p); return d.startsWith('591') ? 'Bolivia' : d.startsWith('56') ? 'Chile' : '—'; };
+function paisBadge(p){
+  const pais = paisDe(p);
+  if (pais === '—') return '<span class="muted">—</span>';
+  return `<span class="pais pais-${pais === 'Bolivia' ? 'bo' : 'cl'}">${pais}</span>`;
+}
 // ISO → valor para <input type="datetime-local"> en hora local (equipo en Chile).
 const toLocalInput = iso => {
   if(!iso) return '';
@@ -134,6 +141,7 @@ function renderTable(){
       <td>${l.rubro||'<span class="muted">—</span>'}</td>
       <td>${estadoSelect(l)}</td>
       <td><span class="src"><span class="sdot" style="background:${SRC_COLOR[l.source]||'#98A2AD'}"></span>${l.source||'—'}</span></td>
+      <td>${paisBadge(l.phone)}</td>
       <td class="date">${fmtDate(l.created_at)}</td>
       <td class="date">${l.meeting_at?`<span class="meet-cell">${fmtDateTime(l.meeting_at)}${reminderDot(l)}</span>`:'<span class="muted">—</span>'}</td>
       <td class="col-actions"><button class="row-actions" title="Ver">›</button></td>
@@ -163,6 +171,7 @@ function openDetail(phone){
       <div class="dp-section"><div class="lbl">WhatsApp</div><div class="val">${l.phone}</div></div>
       <div class="dp-section"><div class="lbl">Rubro</div><div class="val">${l.rubro||'—'}</div></div>
       <div class="dp-section"><div class="lbl">Origen</div><div class="val" style="text-transform:capitalize">${l.source||'—'}</div></div>
+      <div class="dp-section"><div class="lbl">País</div><div class="val">${paisBadge(l.phone)}</div></div>
       <div class="dp-section"><div class="lbl">Registrado</div><div class="val">${fmtDate(l.created_at)}</div></div>
     </div>
     <div class="dp-section"><div class="lbl">Reunión</div>

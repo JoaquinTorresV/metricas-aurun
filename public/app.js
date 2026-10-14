@@ -7,7 +7,7 @@ const SRC_COLOR = { web:'#26C6BE', voz:'#8B5CF6', organico:'#F59E0B' };
 
 // ---- Datos demo (se usan si no hay backend) ----
 const DEMO_LEADS = [
-  { phone:'+56 9 6721 4408', nombre:'Rodrigo Fuentes', negocio:'Automotora del Valle', rubro:'Automotriz', desafio:'Los leads de los ads se pierden, nadie los contacta a tiempo.', source:'web', estado:'agendado', meeting_at:'2026-10-02T15:00', created_at:'2026-09-28T11:20' },
+  { phone:'+56 9 6721 4408', nombre:'Rodrigo Fuentes', negocio:'Automotora del Valle', rubro:'Automotriz', desafio:'Los leads de los ads se pierden, nadie los contacta a tiempo.', source:'web', estado:'agendado', meeting_at:'2026-10-02T15:00', recordatorio_enviado_at:'2026-10-02T14:00', created_at:'2026-09-28T11:20' },
   { phone:'+56 9 5540 1129', nombre:'Camila Rojas', negocio:'Clínica Dental Sonríe', rubro:'Clínicas / Salud', desafio:'Muchos no-shows y la recepción no da abasto con WhatsApp.', source:'web', estado:'respondio', meeting_at:null, created_at:'2026-09-28T09:05' },
   { phone:'+56 9 8890 3321', nombre:'Diego Herrera', negocio:'InmoSur Propiedades', rubro:'Inmobiliaria', desafio:'Consultas fuera de horario se quedan sin respuesta.', source:'web', estado:'contactado', meeting_at:null, created_at:'2026-09-27T18:42' },
   { phone:'+56 9 3312 7765', nombre:'Valentina Soto', negocio:'Boutique Aurora', rubro:'E-Commerce', desafio:'Pauta gastando sin retorno claro, no sabe qué funciona.', source:'web', estado:'nuevo', meeting_at:null, created_at:'2026-09-29T08:15' },
@@ -33,6 +33,26 @@ const avatarColor = n => { let h=0; for(const c of (n||'')) h=(h*31+c.charCodeAt
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const fmtDateTime = iso => iso ? new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
 const waDigits = p => (p||'').replace(/\D/g,'');
+// ISO → valor para <input type="datetime-local"> en hora local (equipo en Chile).
+const toLocalInput = iso => {
+  if(!iso) return '';
+  const d = new Date(iso); if(isNaN(d)) return '';
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+// Badge del estado de recordatorio en el panel de detalle.
+function reminderStatus(l){
+  if(!l.meeting_at) return '';
+  if(l.recordatorio_enviado_at)
+    return `<span class="rem-badge sent">✓ Recordatorio enviado · ${fmtDateTime(l.recordatorio_enviado_at)}</span>`;
+  return `<span class="rem-badge pending">◷ Recordatorio pendiente (se envía ~1h antes)</span>`;
+}
+// Puntito de recordatorio para la celda de la tabla.
+function reminderDot(l){
+  if(!l.meeting_at) return '';
+  const sent = !!l.recordatorio_enviado_at;
+  return `<span class="rem-dot ${sent?'sent':'pending'}" title="${sent?'Recordatorio enviado':'Recordatorio pendiente'}"></span>`;
+}
 
 // ---------- carga de datos ----------
 async function loadData(){
@@ -114,7 +134,7 @@ function renderTable(){
       <td>${estadoSelect(l)}</td>
       <td><span class="src"><span class="sdot" style="background:${SRC_COLOR[l.source]||'#98A2AD'}"></span>${l.source||'—'}</span></td>
       <td class="date">${fmtDate(l.created_at)}</td>
-      <td class="date">${l.meeting_at?fmtDateTime(l.meeting_at):'<span class="muted">—</span>'}</td>
+      <td class="date">${l.meeting_at?`<span class="meet-cell">${fmtDateTime(l.meeting_at)}${reminderDot(l)}</span>`:'<span class="muted">—</span>'}</td>
       <td class="col-actions"><button class="row-actions" title="Ver">›</button></td>
     </tr>`).join('');
 }
@@ -144,13 +164,21 @@ function openDetail(phone){
       <div class="dp-section"><div class="lbl">Origen</div><div class="val" style="text-transform:capitalize">${l.source||'—'}</div></div>
       <div class="dp-section"><div class="lbl">Registrado</div><div class="val">${fmtDate(l.created_at)}</div></div>
     </div>
-    <div class="dp-section"><div class="lbl">Reunión</div><div class="val">${l.meeting_at?fmtDateTime(l.meeting_at):'Sin agendar'}</div></div>
+    <div class="dp-section"><div class="lbl">Reunión</div>
+      <div class="val">${l.meeting_at?fmtDateTime(l.meeting_at):'Sin agendar'}</div>
+      ${reminderStatus(l)}
+      <div class="reagendar">
+        <input type="datetime-local" id="dpMeeting" value="${toLocalInput(l.meeting_at)}">
+        <button class="btn-ghost sm" id="dpReagendar">${l.meeting_at?'Reagendar':'Agendar'}</button>
+      </div>
+    </div>
     <div class="dp-section"><div class="lbl">Desafío</div><div class="val desafio">${l.desafio||'—'}</div></div>
   `;
   $('#detail').hidden=false; $('#detailBackdrop').hidden=false;
   $('#detailClose').onclick=closeDetail;
   $('#dpEstado').onchange=e=>changeEstado(phone,e.target.value);
   $('#dpDelete').onclick=()=>{ if(confirm('¿Eliminar este lead?')) deleteLead(phone); };
+  $('#dpReagendar').onclick=()=>reagendar(phone, $('#dpMeeting').value);
 }
 function closeDetail(){ state.active=null; $('#detail').hidden=true; $('#detailBackdrop').hidden=true; }
 
@@ -161,6 +189,15 @@ async function changeEstado(phone, estado){
   renderAll();
   if(state.active===phone) openDetail(phone);
   if(API){ try{ await fetch(`/api/leads/${encodeURIComponent(phone)}/estado`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado})}); }catch(_){} }
+}
+async function reagendar(phone, localValue){
+  if(!localValue){ alert('Elige fecha y hora para la reunión.'); return; }
+  const iso = new Date(localValue).toISOString();
+  const l = LEADS.find(x=>x.phone===phone);
+  if(l){ l.meeting_at = iso; l.estado = 'agendado'; l.recordatorio_enviado_at = null; }
+  renderAll();
+  if(state.active===phone) openDetail(phone);
+  if(API){ try{ await fetch(`/api/leads/${encodeURIComponent(phone)}/reagendar`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({meeting_at:iso})}); }catch(_){} }
 }
 async function deleteLead(phone){
   LEADS = LEADS.filter(x=>x.phone!==phone);

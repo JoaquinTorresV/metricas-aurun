@@ -38,14 +38,58 @@ export async function initSchema() {
       at     TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  // Columnas para el recordatorio de reunión (idempotente, el bot puede no tenerlas aún).
+  await pool.query(`
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS meet_link TEXT;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS recordatorio_enviado_at TIMESTAMPTZ;
+  `);
 }
 
 export async function listLeads() {
   const { rows } = await pool.query(
-    `SELECT phone, nombre, negocio, rubro, desafio, email, source, estado, meeting_at, created_at
+    `SELECT phone, nombre, negocio, rubro, desafio, email, source, estado,
+            meeting_at, meet_link, recordatorio_enviado_at, created_at
        FROM leads ORDER BY created_at DESC`
   );
   return rows;
+}
+
+// Reagenda la reunión de un lead: nueva fecha, estado 'agendado' y resetea el
+// recordatorio para que se vuelva a enviar según la nueva hora.
+export async function reagendar(phone, meetingAtIso) {
+  await pool.query(
+    `UPDATE leads
+        SET meeting_at = $2::timestamptz,
+            estado = 'agendado',
+            recordatorio_enviado_at = NULL,
+            updated_at = now()
+      WHERE phone = $1`,
+    [phone, meetingAtIso]
+  );
+  await pool.query(`INSERT INTO lead_events (phone, estado) VALUES ($1, 'agendado')`, [phone]);
+}
+
+// Reuniones que caen dentro de la ventana [ahora, ahora + leadMinutes], agendadas
+// y sin recordatorio enviado todavía. Es lo que dispara el recordatorio.
+export async function dueReminders(leadMinutes = 60) {
+  const { rows } = await pool.query(
+    `SELECT phone, nombre, meeting_at, meet_link
+       FROM leads
+      WHERE estado = 'agendado'
+        AND meeting_at IS NOT NULL
+        AND recordatorio_enviado_at IS NULL
+        AND meeting_at > now()
+        AND meeting_at <= now() + ($1 || ' minutes')::interval`,
+    [String(leadMinutes)]
+  );
+  return rows;
+}
+
+export async function markRecordatorioEnviado(phone) {
+  await pool.query(
+    `UPDATE leads SET recordatorio_enviado_at = now(), updated_at = now() WHERE phone = $1`,
+    [phone]
+  );
 }
 
 export async function updateEstado(phone, estado) {

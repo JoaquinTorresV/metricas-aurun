@@ -89,6 +89,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--teal);cursor:poin
 /* ===== Estado badges ===== */
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;text-transform:capitalize;border:1px solid transparent;cursor:pointer;white-space:nowrap}
 .badge .bdot{width:6px;height:6px;border-radius:50%}
+.badge.incompleto{background:#F3EEFE;color:#7C3AED}.badge.incompleto .bdot{background:#8B5CF6}
 .badge.nuevo{background:#EAF2FF;color:#2563EB}.badge.nuevo .bdot{background:#3B82F6}
 .badge.contactado{background:#FEF3E2;color:#B45309}.badge.contactado .bdot{background:#F59E0B}
 .badge.respondio{background:var(--teal-soft);color:var(--teal-dark)}.badge.respondio .bdot{background:var(--teal)}

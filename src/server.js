@@ -31,7 +31,7 @@ app.get('/api/leads', async (_req, res) => {
 app.patch('/api/leads/:phone/estado', async (req, res) => {
   if (!db.hasDB) return res.status(503).json({ error: 'sin base de datos' });
   const { estado } = req.body || {};
-  const validos = ['nuevo','contactado','respondio','agendado','cerrado','perdido','no_show'];
+  const validos = ['incompleto','nuevo','contactado','respondio','agendado','cerrado','perdido','no_show'];
   if (!validos.includes(estado)) return res.status(400).json({ error: 'estado inválido' });
   try { await db.updateEstado(req.params.phone, estado); res.json({ ok: true }); }
   catch (e) { console.error(e); res.status(500).json({ error: e.message }); }

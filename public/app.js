@@ -1,12 +1,13 @@
 // ===== Aurun · Panel de leads =====
 // Funciona en modo demo (datos de ejemplo) o contra la API real (/api/*) si existe backend.
 
-const ESTADOS = ['nuevo','contactado','respondio','agendado','cerrado','perdido','no_show'];
-const ESTADO_LABEL = { nuevo:'Nuevo', contactado:'Contactado', respondio:'Respondió', agendado:'Agendado', cerrado:'Cerrado', perdido:'Perdido', no_show:'No-show' };
+const ESTADOS = ['incompleto','nuevo','contactado','respondio','agendado','cerrado','perdido','no_show'];
+const ESTADO_LABEL = { incompleto:'Incompleto', nuevo:'Nuevo', contactado:'Contactado', respondio:'Respondió', agendado:'Agendado', cerrado:'Cerrado', perdido:'Perdido', no_show:'No-show' };
 const SRC_COLOR = { web:'#26C6BE', voz:'#8B5CF6', organico:'#F59E0B' };
 
 // ---- Datos demo (se usan si no hay backend) ----
 const DEMO_LEADS = [
+  { phone:'+56 9 1122 3344', nombre:'Carla Núñez', negocio:'', rubro:'', desafio:'', source:'organico', estado:'incompleto', meeting_at:null, created_at:'2026-10-14T09:12' },
   { phone:'+56 9 6721 4408', nombre:'Rodrigo Fuentes', negocio:'Automotora del Valle', rubro:'Automotriz', desafio:'Los leads de los ads se pierden, nadie los contacta a tiempo.', source:'web', estado:'agendado', meeting_at:'2026-10-02T15:00', recordatorio_enviado_at:'2026-10-02T14:00', created_at:'2026-09-28T11:20' },
   { phone:'+56 9 5540 1129', nombre:'Camila Rojas', negocio:'Clínica Dental Sonríe', rubro:'Clínicas / Salud', desafio:'Muchos no-shows y la recepción no da abasto con WhatsApp.', source:'web', estado:'respondio', meeting_at:null, created_at:'2026-09-28T09:05' },
   { phone:'+56 9 8890 3321', nombre:'Diego Herrera', negocio:'InmoSur Propiedades', rubro:'Inmobiliaria', desafio:'Consultas fuera de horario se quedan sin respuesta.', source:'web', estado:'contactado', meeting_at:null, created_at:'2026-09-27T18:42' },

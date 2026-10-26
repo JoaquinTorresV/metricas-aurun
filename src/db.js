@@ -108,7 +108,13 @@ export async function updateEstado(phone, estado) {
 }
 
 export async function deleteLead(phone) {
+  // Reset completo: borra el lead, su historial de chat y sus eventos de embudo,
+  // así el número vuelve a ser tratado como totalmente nuevo por el bot.
   await pool.query(`DELETE FROM leads WHERE phone = $1`, [phone]);
+  for (const t of ['conversations', 'lead_events']) {
+    try { await pool.query(`DELETE FROM ${t} WHERE phone = $1`, [phone]); }
+    catch (e) { console.error(`[deleteLead] ${t}:`, e.message); }
+  }
 }
 
 // Inserta leads de ejemplo SOLO si la tabla está vacía (para verificar el deploy).

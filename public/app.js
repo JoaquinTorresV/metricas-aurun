@@ -202,7 +202,7 @@ function openDetail(phone){
   $('#detail').hidden=false; $('#detailBackdrop').hidden=false;
   $('#detailClose').onclick=closeDetail;
   $('#dpEstado').onchange=e=>changeEstado(phone,e.target.value);
-  $('#dpDelete').onclick=()=>{ if(confirm('¿Eliminar este lead?')) deleteLead(phone); };
+  $('#dpDelete').onclick=()=>{ if(confirm('¿Eliminar este lead y todo su historial de chat? El número volverá a ser tratado como nuevo.')) deleteLead(phone); };
   $('#dpReagendar').onclick=()=>reagendar(phone, $('#dpMeeting').value);
 }
 function closeDetail(){ state.active=null; $('#detail').hidden=true; $('#detailBackdrop').hidden=true; }

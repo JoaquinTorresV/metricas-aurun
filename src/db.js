@@ -42,13 +42,16 @@ export async function initSchema() {
   await pool.query(`
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS meet_link TEXT;
     ALTER TABLE leads ADD COLUMN IF NOT EXISTS recordatorio_enviado_at TIMESTAMPTZ;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS contacto_estado TEXT;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS contacto_error TEXT;
+    ALTER TABLE leads ADD COLUMN IF NOT EXISTS contacto_msg_id TEXT;
   `);
 }
 
 export async function listLeads() {
   const { rows } = await pool.query(
     `SELECT phone, nombre, negocio, rubro, desafio, email, source, estado,
-            meeting_at, meet_link, recordatorio_enviado_at, created_at
+            meeting_at, meet_link, recordatorio_enviado_at, contacto_estado, contacto_error, created_at
        FROM leads ORDER BY created_at DESC`
   );
   return rows;

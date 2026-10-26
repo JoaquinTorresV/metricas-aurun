@@ -9,7 +9,7 @@ const SRC_COLOR = { web:'#26C6BE', voz:'#8B5CF6', organico:'#F59E0B' };
 const DEMO_LEADS = [
   { phone:'+56 9 1122 3344', nombre:'Carla Núñez', negocio:'', rubro:'', desafio:'', source:'organico', estado:'incompleto', meeting_at:null, created_at:'2026-10-14T09:12' },
   { phone:'+56 9 6721 4408', nombre:'Rodrigo Fuentes', negocio:'Automotora del Valle', rubro:'Automotriz', desafio:'Los leads de los ads se pierden, nadie los contacta a tiempo.', source:'web', estado:'agendado', meeting_at:'2026-10-02T15:00', recordatorio_enviado_at:'2026-10-02T14:00', created_at:'2026-09-28T11:20' },
-  { phone:'+56 9 5540 1129', nombre:'Camila Rojas', negocio:'Clínica Dental Sonríe', rubro:'Clínicas / Salud', desafio:'Muchos no-shows y la recepción no da abasto con WhatsApp.', source:'web', estado:'respondio', meeting_at:null, created_at:'2026-09-28T09:05' },
+  { phone:'+56 9 5540 1129', nombre:'Camila Rojas', negocio:'Clínica Dental Sonríe', rubro:'Clínicas / Salud', desafio:'Muchos no-shows y la recepción no da abasto con WhatsApp.', source:'web', estado:'contactado', meeting_at:null, contacto_estado:'fallido', contacto_error:'Your account balance is insufficient, please top up.', created_at:'2026-09-28T09:05' },
   { phone:'+56 9 8890 3321', nombre:'Diego Herrera', negocio:'InmoSur Propiedades', rubro:'Inmobiliaria', desafio:'Consultas fuera de horario se quedan sin respuesta.', source:'web', estado:'contactado', meeting_at:null, created_at:'2026-09-27T18:42' },
   { phone:'+56 9 3312 7765', nombre:'Valentina Soto', negocio:'Boutique Aurora', rubro:'E-Commerce', desafio:'Pauta gastando sin retorno claro, no sabe qué funciona.', source:'web', estado:'nuevo', meeting_at:null, created_at:'2026-09-29T08:15' },
   { phone:'+56 9 7788 5540', nombre:'Matías Vera', negocio:'Logística Andes', rubro:'Logística', desafio:'Procesos manuales, quiere automatizar seguimiento de clientes.', source:'voz', estado:'agendado', meeting_at:'2026-10-01T11:30', created_at:'2026-09-27T14:10' },
@@ -40,6 +40,20 @@ function paisBadge(p){
   const pais = paisDe(p);
   if (pais === '—') return '<span class="muted">—</span>';
   return `<span class="pais pais-${pais === 'Bolivia' ? 'bo' : 'cl'}">${pais}</span>`;
+}
+const _san = s => String(s||'').replace(/[<>"]/g,'');
+// Marca de alerta en la tabla cuando el primer mensaje (plantilla) NO se envió.
+function contactoFalla(l){
+  if (l.contacto_estado !== 'fallido') return '';
+  return ` <span class="c-falla" title="Primer mensaje NO enviado: ${_san(l.contacto_error)||'sin detalle'}">no enviado</span>`;
+}
+// Estado del primer mensaje para el panel de detalle.
+function contactoDetalle(l){
+  const e = l.contacto_estado;
+  if (!e) return '<span class="muted">Sin envío registrado</span>';
+  if (e === 'fallido') return `<span class="c-falla">No enviado</span> <small class="muted">${_san(l.contacto_error)}</small>`;
+  const label = { enviado:'Enviado (pendiente de confirmación)', entregado:'Entregado', leido:'Leído' }[e] || e;
+  return `<span class="c-ok">✓ ${label}</span>`;
 }
 // ISO → valor para <input type="datetime-local"> en hora local (equipo en Chile).
 const toLocalInput = iso => {
@@ -139,7 +153,7 @@ function renderTable(){
       <td>${l.negocio||'<span class="muted">—</span>'}</td>
       <td><a class="wa-link" href="https://wa.me/${waDigits(l.phone)}" target="_blank" onclick="event.stopPropagation()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95s-.45-.15-.65.15-.75.95-.9 1.15-.32.22-.6.07a8 8 0 0 1-2.35-1.45 8.8 8.8 0 0 1-1.6-2c-.17-.3 0-.45.13-.6l.4-.47c.13-.15.17-.25.27-.42s.05-.32-.02-.47-.65-1.57-.9-2.15-.47-.48-.65-.48h-.55c-.2 0-.5.07-.75.35s-1 .98-1 2.4 1.02 2.78 1.17 2.97 2 3.05 4.85 4.28c.68.3 1.2.47 1.62.6.68.22 1.3.19 1.78.11.55-.08 1.7-.7 1.95-1.36s.24-1.25.17-1.37-.27-.2-.57-.35ZM12 2a10 10 0 0 0-8.6 15.06L2 22l5.05-1.32A10 10 0 1 0 12 2Z"/></svg>${l.phone}</a></td>
       <td>${l.rubro||'<span class="muted">—</span>'}</td>
-      <td>${estadoSelect(l)}</td>
+      <td>${estadoSelect(l)}${contactoFalla(l)}</td>
       <td><span class="src"><span class="sdot" style="background:${SRC_COLOR[l.source]||'#98A2AD'}"></span>${l.source||'—'}</span></td>
       <td>${paisBadge(l.phone)}</td>
       <td class="date">${fmtDate(l.created_at)}</td>
@@ -166,6 +180,7 @@ function openDetail(phone){
     </div>
     <div class="dp-section"><div class="lbl">Estado</div>
       <select class="dp-estado-select" id="dpEstado">${opts}</select></div>
+    <div class="dp-section"><div class="lbl">Primer mensaje (plantilla)</div><div class="val">${contactoDetalle(l)}</div></div>
     <div class="dp-section"><div class="lbl">Correo</div><div class="val">${l.email ? `<a href="mailto:${l.email}" style="color:var(--teal-dark)">${l.email}</a>` : '<span class="muted">Sin correo aún</span>'}</div></div>
     <div class="dp-grid">
       <div class="dp-section"><div class="lbl">WhatsApp</div><div class="val">${l.phone}</div></div>
